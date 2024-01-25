@@ -1,4 +1,4 @@
-// This file is part of www.nand2tetris.org
+// This file is part of www.nand2tetris.orgin = in, address = address[0..2],
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/03/a/RAM64.hdl
@@ -13,5 +13,14 @@ CHIP RAM64 {
     OUT out[16];
 
     PARTS:
-    //// Replace this comment with your code.
+    DMux8Way(in = load, sel = address[3..5], a = r1i, b = r2i, c = r3i, d = r4i, e = r5i, f = r6i, g = r7i, h = r8i);
+    RAM8(in = in, address = address[0..2], load = r1i, out = r1o);
+    RAM8(in = in, address = address[0..2], load = r2i, out = r2o);
+    RAM8(in = in, address = address[0..2], load = r3i, out = r3o);
+    RAM8(in = in, address = address[0..2], load = r4i, out = r4o);
+    RAM8(in = in, address = address[0..2], load = r5i, out = r5o);
+    RAM8(in = in, address = address[0..2], load = r6i, out = r6o);
+    RAM8(in = in, address = address[0..2], load = r7i, out = r7o);
+    RAM8(in = in, address = address[0..2], load = r8i, out = r8o);
+    Mux8Way16(a = r1o, b = r2o, c = r3o, d = r4o, e = r5o, f = r6o, g = r7o, h = r8o, sel = address[3..5], out = out);
 }
