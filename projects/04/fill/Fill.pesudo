@@ -1,0 +1,22 @@
+// keybord = KBD 
+//SCREEN 256*512 = 8192*16
+R1 = 8192
+LOOP:
+KBD == 0; JMP WHITE
+KBD != 0; JMP BLACK
+JMP loop;
+
+BLACK:
+    i = 0;
+    RAM[SCREEN + I] = -1;
+    i +=1;
+    if i < R1; JMP WHITE;
+JMP LOOP;
+
+
+WHITE:
+    i = 0;
+    RAM[SCREEN + I] = 0;
+    i +=1;
+    if i < R1; JMP WHITE;
+JMP LOOP
