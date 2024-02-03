@@ -1,0 +1,9 @@
+a=R0;
+b=R1;
+result=0;
+i=0;
+Loop:
+    D=a;
+    i+=1;
+    result += D;
+    if b - i > 0 Jmp Loop
