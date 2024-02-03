@@ -1,38 +1,31 @@
-@R0
-D = M;
-@a
-M = D; //a = R0
-
-@R1
-D = M;
-@b
-M = D; //b = R1;
-
 @result
-M = 0; // result = 0;
-
+M = 0; // result = 0
 @i
-M = 0;
+M = 0; // i=0
 
 (LOOP)
-@a
-D = M; //D =a;
+@R1
+D = M;
+@i
+D = D - M;
+@SET
+D;JLE //if b - i > 0 Jmp Loop
+
+@R0
+D = M; //D = R0;
 
 @result
 M = M + D; //result+=D;
 
 @i
 M = M + 1; //i+=1;
-
-D = M;
-@b
-D = D - M;
 @LOOP
-D;JLT //if b - i > 0 Jmp Loop
+0;JMP
 
+(SET)
 @result
 D = M;
-@R3
+@R2
 M = D; //R3=result
 
 (RET)
