@@ -21,7 +21,7 @@
 CHIP CPU {
 
     IN  inM[16],         // M value input  (M = contents of RAM[A])
-        instruction[16], // Instruction for execution
+        instruction[16], // Instruction for execution  0v...v  111accccccdddjjj
         reset;           // Signals whether to restart the current
                          // program (reset==1) or continue executing
                          // the current program (reset==0).
@@ -33,17 +33,51 @@ CHIP CPU {
 
     PARTS:
     //// Replace this comment with your code.
+
     
-    Mux16(a = instruction, b = aOut, sel = , out = aIn); //MuxBeforeA
+    Not(in = instruction[0], out = notInstruction0);
+    Or(a = notInstruction0, b = instruction[10], out = aRload); //ARegisterControl
 
-    Register(in = aIn, load = , out = aOut, out[0..14] = addressM);  //ARegister
+    Mux16(a = instruction, b = aluOut, sel = notInstruction0, out = aRIn); //MuxBeforeA
 
-    Mux16(a = aOut, b = inM, sel = , out = aOrMinALU); //MuxBeforeALU
+    ARegister(in = aRIn, load = aRload, out = aROut, out[0..14] = addressM);  //ARegister
 
-    Register(in = aOut, load = , out = dOut); //DRegister
+    Mux16(a = aROut, b = inM, sel = instruction[3], out = aOrMinALU); //MuxBeforeALU
 
-    ALU(x = dOut, y = aOrMinALU, zx = , nx = , zy = , ny = , f = , no = , out = aOut,out = outM, zr = , ng = );
+    DRegister(in = aluOut, load = instruction[12], out = dOut); //DRegister
 
-    PC(in = aOut, load = , inc = , reset = reset, out[0..14] = pc); //PC
+    ALU(x = dOut, y = aOrMinALU, zx = instruction[4], nx = instruction[5], zy = instruction[6], ny = instruction[7], f = instruction[8], no = instruction[9], out = aluOut,out = outM,zr = zr, ng = ng);
+
+    Not(in = zr, out = notZ); //zeroNot
+    Not(in = ng, out = notN); //negativeNot
+    And(a = zr, b = ng, out = pozitive); //pozitive
+    Not(in = pozitive, out = notP); //pozitiveNot
+
+    And(a = pozitive, b = instruction[15], out = jgt); //JGT
+
+    And(a = zr, b = instruction[14], out = jeq); //JEQ
+
+    And(a = instruction[14], b = instruction[15], out = jgeins);
+    And(a = jgeins, b = notN, out = jge); // JGE
+
+    And(a = ng, b = instruction[13], out = jlt); //JLT
+
+    And(a = instruction[13], b = instruction[15], out = jneins);
+    And(a = jneins, b = notZ, out = jne); //JNE
+
+    And(a = instruction[13], b = instruction[14], out = jleins);
+    And(a = jleins, b = notP, out = jle); //JLE
+
+    And(a = instruction[13], b = instruction[14], out = jmpins);
+    And(a = jmpins, b = instruction[15], out = jmp); //JMP
+
+    Or(a = jgt, b = jeq, out = jmpcom1);
+    Or(a = jge, b = jlt, out = jmpcom2);
+    Or(a = jne, b = jle, out = jmpcom3);
+    Or(a = jmpcom1, b = jmpcom2, out = jmpcom12);
+    Or(a = jmpcom3, b = jmp, out = jmpcom34);
+    Or(a = jmpcom12, b = jmpcom34, out = pcload);
+
+    PC(in = aROut, load = pcload, inc = true, reset = reset, out[0..14] = pc); //PC
 
 }
