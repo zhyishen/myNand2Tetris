@@ -33,4 +33,17 @@ CHIP CPU {
 
     PARTS:
     //// Replace this comment with your code.
+    
+    Mux16(a = instruction, b = aOut, sel = , out = aIn); //MuxBeforeA
+
+    Register(in = aIn, load = , out = aOut, out[0..14] = addressM);  //ARegister
+
+    Mux16(a = aOut, b = inM, sel = , out = aOrMinALU); //MuxBeforeALU
+
+    Register(in = aOut, load = , out = dOut); //DRegister
+
+    ALU(x = dOut, y = aOrMinALU, zx = , nx = , zy = , ny = , f = , no = , out = aOut,out = outM, zr = , ng = );
+
+    PC(in = aOut, load = , inc = , reset = reset, out[0..14] = pc); //PC
+
 }
