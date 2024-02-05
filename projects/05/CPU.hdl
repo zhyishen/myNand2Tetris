@@ -35,49 +35,68 @@ CHIP CPU {
     //// Replace this comment with your code.
 
     
-    Not(in = instruction[0], out = notInstruction0);
-    Or(a = notInstruction0, b = instruction[10], out = aRload); //ARegisterControl
+    Not(in = instruction[15], out = notInstruction0);
+    Or(a = notInstruction0, b = instruction[5], out = aRload); //ARegisterControl
 
-    Mux16(a = instruction, b = aluOut, sel = notInstruction0, out = aRIn); //MuxBeforeA
+    Mux16(a = aluOut, b = instruction, sel = notInstruction0, out = aRIn); //MuxBeforeA
 
     ARegister(in = aRIn, load = aRload, out = aROut, out[0..14] = addressM);  //ARegister
 
-    Mux16(a = aROut, b = inM, sel = instruction[3], out = aOrMinALU); //MuxBeforeALU
+    Mux16(a = aROut, b = inM, sel = instruction[12], out = aOrMinALU); //MuxBeforeALU
 
-    DRegister(in = aluOut, load = instruction[12], out = dOut); //DRegister
+    And(a = instruction[15], b = instruction[4], out = dRload);
+    DRegister(in = aluOut, load = dRload, out = dOut); //DRegister
 
-    ALU(x = dOut, y = aOrMinALU, zx = instruction[4], nx = instruction[5], zy = instruction[6], ny = instruction[7], f = instruction[8], no = instruction[9], out = aluOut,out = outM,zr = zr, ng = ng);
+    ALU(x = dOut, y = aOrMinALU, zx = instruction[11], nx = instruction[10], zy = instruction[9], ny = instruction[8], f = instruction[7], no = instruction[6], out = aluOut,out = outM,zr = zr, ng = ng);
 
     Not(in = zr, out = notZ); //zeroNot
     Not(in = ng, out = notN); //negativeNot
-    And(a = zr, b = ng, out = pozitive); //pozitive
-    Not(in = pozitive, out = notP); //pozitiveNot
+    Or(a = zr, b = ng, out = notP); //pozitive
+    Not(in = notP, out = pozitive); //pozitiveNot
 
-    And(a = pozitive, b = instruction[15], out = jgt); //JGT
+    Xor(a = pozitive, b = instruction[0], out = njl);
+    Not(in = njl, out = jl);
 
-    And(a = zr, b = instruction[14], out = jeq); //JEQ
+    Xor(a = zr, b = instruction[1], out = nje);
+    Not(in = nje, out = je);
 
-    And(a = instruction[14], b = instruction[15], out = jgeins);
-    And(a = jgeins, b = notN, out = jge); // JGE
+    Xor(a = ng, b = instruction[2], out = njn);
+    Not(in = njn, out = jn);
 
-    And(a = ng, b = instruction[13], out = jlt); //JLT
+    And(a = jl, b = instruction[0], out = jgt);
+    And(a = je, b = instruction[1], out = jeq);
+    And(a = jn, b = instruction[2], out = jlt);
+    
 
-    And(a = instruction[13], b = instruction[15], out = jneins);
-    And(a = jneins, b = notZ, out = jne); //JNE
+    And(a = instruction[0], b = instruction[1], out = jgeins);
+    Or(a = jl, b = je, out = jgecon);
+    And(a = jgeins, b = jgecon, out = jge);
 
-    And(a = instruction[13], b = instruction[14], out = jleins);
-    And(a = jleins, b = notP, out = jle); //JLE
+    And(a = instruction[0], b = instruction[2], out = jneins);
+    Or(a = jl, b = jn, out = jnecon);
+    And(a = jneins, b = jnecon, out = jne);
 
-    And(a = instruction[13], b = instruction[14], out = jmpins);
-    And(a = jmpins, b = instruction[15], out = jmp); //JMP
+    And(a = instruction[1], b = instruction[2], out = jleins);
+    Or(a = je, b = jn, out = jlecon);
+    And(a = jleins, b = jlecon, out = jle);
 
-    Or(a = jgt, b = jeq, out = jmpcom1);
-    Or(a = jge, b = jlt, out = jmpcom2);
-    Or(a = jne, b = jle, out = jmpcom3);
-    Or(a = jmpcom1, b = jmpcom2, out = jmpcom12);
-    Or(a = jmpcom3, b = jmp, out = jmpcom34);
-    Or(a = jmpcom12, b = jmpcom34, out = pcload);
+    And(a = jgeins , b = instruction[2], out = jmp);
+
+    Or(a = jgt, b = jeq, out = jmpcom12);
+    Or(a = jlt, b = jge, out = jmpcom34);
+    Or(a = jne, b = jle, out = jmpcom56);
+
+    Or(a = jmpcom12, b = jmpcom34, out= jmpcom14);
+    Or(a = jmpcom56, b = jmp, out = jmpcom57);
+    
+    Or(a = jmpcom14, b = jmpcom57, out = jmpcomall);
+    And(a = jmpcomall, b = instruction[15], out = pcload);
+
 
     PC(in = aROut, load = pcload, inc = true, reset = reset, out[0..14] = pc); //PC
 
+
+
+    And(a = instruction[15], b = instruction[3], out = writeMin);
+    And(a = true, b = writeMin, out = writeM);
 }
